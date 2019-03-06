@@ -2,6 +2,9 @@
 ## Add Administrator: .\config-edit.ps1 -query '.security.users.administrators |= . + [\"USER\"]'
 ## Add Cors: .\config-edit.ps1 -query '.cors.rules |= . + [{\"origin\": \"URL\", "allow": true }]'
 
+## Note that because of how powershell and jq escape sequence works, if you were to use double quoted string instead of single quote
+## you would need to escape double quotation twice, etc: """" => "
+
 #Requires -RunAsAdministrator
 [CmdletBinding()]
 param(
@@ -24,6 +27,8 @@ param(
     [string]
     $administratorsSID = 'S-1-5-32-544'
 )
+
+$ErrorActionPreference = "Stop"
 
 function EnsureJQ {
     if (Get-Command "jq" -ErrorAction SilentlyContinue) {
@@ -134,6 +139,9 @@ LogVerbose "Config Location $configLocation"
 $jqExe = EnsureJQ
 EnsureAcl $workingDirectory
 $newContent = (Get-Content -Raw $configLocation | & $jqExe $query) -join "`n"
+if (!(ConvertFrom-Json $newContent)) {
+    throw "Invalid query string"
+}
 LogVerbose $newContent
 $newContent -join "`n" | Out-File -Force $configLocation
 
