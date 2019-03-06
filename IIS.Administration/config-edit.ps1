@@ -3,7 +3,7 @@
 ## Add Cors: .\config-edit.ps1 -query '.cors.rules |= . + [{\"origin\": \"URL\", "allow": true }]'
 
 ## Note that because of how powershell and jq escape sequence works, if you were to use double quoted string instead of single quote
-## you would need to escape double quotation twice, etc: """" => "
+## you would need to escape double quotation twice, etc: """" => ", """"my name""""" => "my name"
 
 #Requires -RunAsAdministrator
 [CmdletBinding()]
