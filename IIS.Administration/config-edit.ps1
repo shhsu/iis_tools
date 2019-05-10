@@ -15,7 +15,10 @@ param(
     $jqVersion = "1.6",
 
     [string]
-    $jqLocation = "https://github.com/stedolan/jq/releases/download/jq-{0}/jq-win{1}.exe",
+    $jqSource = "https://github.com/stedolan/jq/releases/download/jq-{0}/jq-win{1}.exe",
+
+    [string]
+    $jqTarget,
 
     [Parameter(Mandatory=$true)]
     [string]
@@ -26,12 +29,13 @@ param(
 
     [string]
     $administratorsSID = 'S-1-5-32-544'
+
 )
 
 $ErrorActionPreference = "Stop"
 
 function EnsureJQ {
-    if (Get-Command "jq" -ErrorAction SilentlyContinue) {
+    if ((!$jqTarget) -and (Get-Command "jq" -ErrorAction SilentlyContinue)) {
         return "jq"
     } else {
         if ([Environment]::Is64BitProcess) {
@@ -39,8 +43,11 @@ function EnsureJQ {
         } else {
             $bitness = 32
         }
-        $downloadFrom = $jqLocation -f $jqVersion, $bitness
-        $jqPath = Join-Path $env:TEMP "jq.exe"
+        $jqPath = $jqTarget;
+        if (!$jqPath) {
+            $jqPath = Join-Path $env:TEMP "jq.exe"
+        }
+        $downloadFrom = $jqSource -f $jqVersion, $bitness
         if (!(Test-Path $jqPath)) {
             Invoke-WebRequest -Uri $downloadFrom -OutFile $jqPath
         }
